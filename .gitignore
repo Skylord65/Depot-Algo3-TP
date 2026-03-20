@@ -1,0 +1,6 @@
+*.o
+stack_ex1
+stack_ex2
+vgcore*
+base_code_lab1.*
+Makefile.txt
