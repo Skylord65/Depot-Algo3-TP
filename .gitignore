@@ -1,6 +1,12 @@
+# TP1
 *.o
 stack_ex1
 stack_ex2
 vgcore*
 base_code_lab1.*
 Makefile.txt
+
+# TP2
+
+evaluate
+base_code_lab2.*
