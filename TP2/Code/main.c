@@ -85,9 +85,7 @@ Queue* stringToTokenQueue(const char* expression) {
 	int i = 0;
 	while (*curpos!='\0') {
 		while (*curpos!=' ' && *curpos!='\n') {
-			if(!isSymbol(*curpos)) {
-				nb_char++;
-			}
+			if(!isSymbol(*curpos)) nb_char++;
 			t = create_token_from_string(curpos, 1);
 			queue = queue_push(queue, t);
 			curpos++;
@@ -231,13 +229,13 @@ void computeExpressions(FILE* input) {
 	while (getline(&line, &n,input)!=EOF) {
 		if( line != NULL && line[0]!='\n') {
 			line[n-1]= '\0';
-			printf("Input : %s", line);
+			printf("Input    : %s", line);
 			q = stringToTokenQueue(line);
-			printf("Infix : ");
+			printf("Infix    : ");
 			print_queue(stdout, q);
 			printf("\n");
 			q = shuntingYard(q);
-			printf("Postfix : ");
+			printf("Postfix  : ");
 			print_queue(stdout, q);
 			printf("\n");
 			printf("Evaluate : %f\n", evaluateExpression(q));
