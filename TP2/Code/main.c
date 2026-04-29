@@ -81,15 +81,23 @@ Queue* stringToTokenQueue(const char* expression) {
 	Queue* queue = create_queue();
 	Token* t;
 	const char* curpos = expression;
-	int nb_char = 0;
-	int i = 0;
+	const char* number_curpos;
+	int nb_digit = 1;
 	while (*curpos!='\0') {
 		while (*curpos!=' ' && *curpos!='\n') {
-			if(!isSymbol(*curpos)) nb_char++;
-			t = create_token_from_string(curpos, 1);
+			if(!isSymbol(*curpos)) {
+				number_curpos = curpos;
+				number_curpos++;
+				while (*number_curpos!=' ' && *number_curpos!='\n' && *number_curpos!='\0' && !isSymbol(*number_curpos)) {
+					nb_digit++;
+					number_curpos++;
+				}
+			}
+			t = create_token_from_string(curpos, nb_digit);
 			queue = queue_push(queue, t);
 			curpos++;
-			i++;
+			if(nb_digit>1) for (int j = 0; j<nb_digit-1; j++) curpos++;
+			nb_digit = 1;
 		}
 		curpos++;
 	}
@@ -101,7 +109,7 @@ Queue* stringToTokenQueue(const char* expression) {
  */
 Queue* shuntingYard(Queue* infix) {
 	Queue* output = create_queue();
-	Stack* operator = create_stack(100);
+	Stack* operator = create_stack(queue_size(infix));
 	const Token* token;
 	const Token* token_stack;
 	while (!queue_empty(infix)) {
@@ -188,7 +196,7 @@ float evaluateExpression(Queue* postfix) {
 	const Token* op2;
 	const Token* result;
 	float res;
-	Stack* stack = create_stack(100);
+	Stack* stack = create_stack(queue_size(postfix));
 	while (!queue_empty(postfix)) {
 		token = queue_top(postfix);
 		if (token_is_operator(token)) {
@@ -225,7 +233,6 @@ void computeExpressions(FILE* input) {
 	char* line = NULL;
 	size_t n;
 	Queue* q;
-	Token* t;
 	while (getline(&line, &n,input)!=EOF) {
 		if( line != NULL && line[0]!='\n') {
 			line[n-1]= '\0';
@@ -240,13 +247,6 @@ void computeExpressions(FILE* input) {
 			printf("\n");
 			printf("Evaluate : %f\n", evaluateExpression(q));
 			printf("\n");
-			while (!queue_empty(q)) {
-				const Queue* cq = q;
-				const Token* tq = queue_top(cq);
-				t = (Token*)tq;
-				q = queue_pop(q);
-				delete_token(&t);
-			}
 			
 			delete_queue(&q);
 		}
