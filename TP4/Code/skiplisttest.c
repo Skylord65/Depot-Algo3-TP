@@ -105,8 +105,13 @@ SkipList* buildlist(int num) {
 /** Exercice 1.
  	Programming and test of skiplist construction.
  */
+
+void print_skiplist(int i, void* e) {
+	fprintf(e, "%d ", i);
+}
+
 void test_construction(int num){
-	(void) num;
+	skiplist_map(buildlist(num), print_skiplist, stdout);
 }
 
 /** Exercice 2.
