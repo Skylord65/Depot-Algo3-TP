@@ -111,7 +111,9 @@ void print_skiplist(int i, void* e) {
 }
 
 void test_construction(int num){
-	skiplist_map(buildlist(num), print_skiplist, stdout);
+	SkipList* s = buildlist(num);
+	skiplist_map(s, print_skiplist, stdout);
+	skiplist_delete(&s);
 }
 
 /** Exercice 2.
