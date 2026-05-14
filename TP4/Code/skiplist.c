@@ -143,3 +143,79 @@ bool skiplist_search(const SkipList* d, int value, unsigned int *nb_operations) 
 	*nb_operations = operations;
 	return false;
 }
+
+SkipList* skiplist_remove(SkipList* d, int value) {
+	
+	Node* p = d->sentinel->level[0].next;
+	bool is = false;
+	while (p!=d->sentinel) {
+		if (p->value==value) is = true;
+		p=p->level[0].next;
+	}
+	if(is!=true) return d;
+	Node* to_remove = NULL;
+	p = d->sentinel;
+	int i_level = d->sentinel->nb_level-1;
+
+	while (i_level>=0) {
+		while (p->level[i_level].next!=d->sentinel && p->level[i_level].next->value<value) { 
+			p = p->level[i_level].next;
+		}
+
+		if(p->level[i_level].next!=d->sentinel && p->level[i_level].next->value == value) {
+			to_remove = p->level[i_level].next;
+			to_remove->level[i_level].next->level[i_level].prev = to_remove->level[i_level].prev;
+			to_remove->level[i_level].prev->level[i_level].next = to_remove->level[i_level].next;
+		}
+		i_level--;
+	}
+	
+	if(to_remove!=NULL) {
+		free(to_remove);
+		d->size--;
+	}
+
+	return d;
+}
+
+struct s_SkipListIterator {
+	SkipList* skiplist;
+	Node* i;
+	IteratorDirection dir;
+};
+
+SkipListIterator* skiplist_iterator_create(SkipList* d, IteratorDirection DIR) {
+	SkipListIterator* p = malloc(sizeof(SkipListIterator));
+	p->skiplist = d;
+	p->i = d->sentinel;
+	p->dir = DIR;
+	return p;
+}
+
+void skiplist_iterator_delete(SkipListIterator** it) {
+	free(*it);
+}
+
+SkipListIterator* skiplist_iterator_begin(SkipListIterator* it) {
+	if(it->dir==FORWARD_ITERATOR)
+		it->i = it->skiplist->sentinel->level[0].next;
+	else 
+		it->i = it->skiplist->sentinel->level[0].prev;
+	return it;
+}
+
+bool skiplist_iterator_end(SkipListIterator* it) {
+	return it->i == it->skiplist->sentinel;
+}
+
+SkipListIterator* skiplist_iterator_next(SkipListIterator* it) {
+	if(it->dir==FORWARD_ITERATOR)
+		it->i = it->i->level[0].next;
+	else 
+		it->i = it->i->level[0].prev;
+	return it;
+}
+
+int skiplist_iterator_value(SkipListIterator* it) {
+	return it->i->value;
+}

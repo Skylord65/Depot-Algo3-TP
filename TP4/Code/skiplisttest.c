@@ -176,15 +176,100 @@ void test_search(int num){
 /** Exercice 3.
  Programming and test of naïve search operator using iterators.
  */
+
 void test_search_iterator(int num){
-	(void) num;
+	SkipList* s = buildlist(num);
+	FILE* input;
+	unsigned int nb_found = 0;
+	unsigned int nb_not_found = 0;
+	unsigned int min_op = 0;
+	unsigned int max_op = 0;
+	unsigned int nb_op = 0;
+	unsigned int op;
+	char *constructfromfile = gettestfilename("search", num);
+	int v;
+	SkipListIterator* e = skiplist_iterator_create(s, FORWARD_ITERATOR);
+	
+	input = fopen(constructfromfile, "r");
+	if (input!=NULL) {
+		unsigned int nb_values = read_uint(input);
+		for (unsigned int i=0;i< nb_values; ++i) {
+			op = 0;
+			v = read_int(input);
+			e = skiplist_iterator_begin(e);
+			op++;
+			while (!skiplist_iterator_end(e) && skiplist_iterator_value(e)!=v) {
+				skiplist_iterator_next(e);
+				op++;
+			}
+			if(!skiplist_iterator_end(e) && skiplist_iterator_value(e)==v) {
+				printf("%d -> true\n", v);
+				nb_found++;
+			} else {
+				printf("%d -> false\n", v);
+				nb_not_found++;
+			}
+			if (i==0) {
+				min_op = op;
+				max_op = op;
+			} else {
+				if(max_op<op) max_op = op;
+				if(min_op>op) min_op = op;
+			}
+			nb_op+=op;
+		}
+		
+		printf("Statistics : \n\tSize of the list : %d\n", skiplist_size(s));
+		printf("Search %d values :\n\tFound %d\n\tNot found %d\n", nb_values, nb_found, nb_not_found);
+		printf("\tMin number of operations : %d\n\tMax number of operations : %d\n\tMean number of operations : %d\n", min_op, max_op, (nb_op/nb_values));
+
+
+	} else {
+		printf("Unable to open file %s\n", constructfromfile);
+		free(constructfromfile);
+		exit (1);
+	}
+	free(constructfromfile);
+	fclose(input);
+	skiplist_iterator_delete(&e);
+	skiplist_delete(&s);
 }
 
 /** Exercice 4.
  Programming and test of skiplist remove operator.
  */
+
 void test_remove(int num){
-	(void) num;
+	SkipList* s = buildlist(num);
+	FILE* input;
+	
+	char *constructfromfile = gettestfilename("remove", num);
+	int v;
+
+	input = fopen(constructfromfile, "r");
+	if (input!=NULL) {
+		unsigned int nb_values = read_uint(input);
+		for (unsigned int i=0;i< nb_values; ++i) {
+			v = read_int(input);
+			skiplist_remove(s,v);
+		}
+
+		printf("Skiplist (%d)\n", skiplist_size(s));
+		SkipListIterator* e = skiplist_iterator_create(s, BACKWARD_ITERATOR);
+		for (skiplist_iterator_begin(e); !skiplist_iterator_end(e); skiplist_iterator_next(e))
+			printf("%d ", skiplist_iterator_value(e));
+		printf("\n");
+		skiplist_iterator_delete(&e);
+
+	} else {
+		printf("Unable to open file %s\n", constructfromfile);
+		free(constructfromfile);
+		exit (1);
+	}
+	free(constructfromfile);
+	fclose(input);
+
+	skiplist_delete(&s);
 }
 
 /** Function you ca use to generate dataset for testing.
