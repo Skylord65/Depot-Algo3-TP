@@ -33,7 +33,6 @@ SkipList* skiplist_create(int nblevels) {
 	list->sentinel->level = (Link*)(list->sentinel+1);
 	list->sentinel->nb_level = nblevels;
 	list->rng = rng_initialize(0, nblevels);
-	//list->sentinel->level = malloc();
 	for (int i = 0; i<nblevels; i++) {
 		list->sentinel->level[i].next = list->sentinel;
 		list->sentinel->level[i].prev = list->sentinel;
@@ -80,36 +79,67 @@ void skiplist_map(const SkipList* d, ScanOperator f, void *user_data) {
 }
 
 SkipList* skiplist_insert(SkipList* d, int value) {
+	
+	Node* p = d->sentinel->level[0].next;
+	while (p!=d->sentinel) {
+		if (p->value==value) {
+			return d;
+		}
+		p=p->level[0].next;
+	}
+	
 	int nblevels = rng_get_value(&d->rng)+1;
 	Node* n = malloc(sizeof(Node) + sizeof(Link)*nblevels);
 	n->level = (Link*)(n+1);
 	n->nb_level = nblevels;
 	n->value = value;
-	Node* p = d->sentinel->level[d->sentinel->nb_level-1].next;
+
+	p = d->sentinel;
 	int i_level = d->sentinel->nb_level-1;
+	
 	for(int i = 0; i<nblevels; i++) {
 		n->level[i].next = d->sentinel;
 		n->level[i].prev = d->sentinel;
 	}
-	while ((p!=d->sentinel && i_level!=0) || (p!=d->sentinel && p->value<=value && i_level!=0)) { // TODO: need to be tested with only one `i_level==0` 
-		if((p==d->sentinel && i_level!=0) || (p->value>value && i_level!=0)) {
-			if(i_level < n->nb_level) {
-				n->level[i_level].next = p;
-				n->level[i_level].prev = p->level[i_level].prev;
-			}
-			i_level--;
-		} else if(p->value==value) {
-			free(n);
-			return d;
+
+	while (i_level>=0) {
+		while (p->level[i_level].next!=d->sentinel && p->level[i_level].next->value<value) { 
+			p = p->level[i_level].next;
 		}
 
-		if(p->nb_level>i_level)	p = p->level[i_level].next;
+		if(i_level<nblevels) {
+			n->level[i_level].prev = p;
+			n->level[i_level].next = p->level[i_level].next;
+		}
+		i_level--;
 	}
 
 	for(int i = 0; i<nblevels; i++) {
 		n->level[i].next->level[i].prev = n;
 		n->level[i].prev->level[i].next = n;
 	}
-
+	d->size++;
 	return d;
+}
+
+bool skiplist_search(const SkipList* d, int value, unsigned int *nb_operations) {
+	int i_level = d->sentinel->nb_level-1;
+	unsigned int operations = 0;
+	Node* p = d->sentinel;
+	operations++;
+	while (i_level>=0) {
+		while (p->level[i_level].next!=d->sentinel && p->level[i_level].next->value<value) { 
+			p = p->level[i_level].next;
+			operations++;
+		}
+
+		if(p->level[i_level].next!=d->sentinel && p->level[i_level].next->value==value) {
+			*nb_operations = operations;
+			return true;
+		}
+
+		i_level--;
+	}
+	*nb_operations = operations;
+	return false;
 }
